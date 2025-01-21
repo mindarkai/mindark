@@ -1,0 +1,158 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "target": "es2015",
+        "module": "esnext",
+        "strict": true,
+        "lib": [
+            "es2017",
+            "dom"
+        ],
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@convo-lang/convo-crawler": [
+                "packages/convo-crawler/src/index.ts"
+            ],
+            "@convo-lang/convo-lang": [
+                "packages/convo-lang/src/index.ts"
+            ],
+            "@convo-lang/convo-lang-api-routes": [
+                "packages/convo-lang-api-routes/src/index.ts"
+            ],
+            "@convo-lang/convo-lang-cli": [
+                "packages/convo-lang-cli/src/index.ts"
+            ],
+            "@convo-lang/convo-lang-openai": [
+                "packages/convo-lang-openai/src/index.ts"
+            ],
+            "@convo-lang/convo-lang-pdf": [
+                "packages/convo-lang-pdf/src/index.ts"
+            ],
+            "@convo-lang/convo-lang-react": [
+                "packages/convo-lang-react/src/index.ts"
+            ],
+            "@convo-lang/convo-vfs": [
+                "packages/convo-vfs/src/index.ts"
+            ],
+            "@mindarkai/api": [
+                "packages/api/src/index.ts"
+            ],
+            "@mindarkai/backend": [
+                "packages/backend/src/index.ts"
+            ],
+            "@mindarkai/components": [
+                "packages/components/src/index.ts"
+            ],
+            "@mindarkai/mindarkai-common": [
+                "packages/mindarkai-common/src/index.ts"
+            ],
+            "@mindarkai/cs-any-comp": [
+                "packages/cs-any-comp/src/index.ts"
+            ],
+            "@mindarkai/domain-functions": [
+                "packages/domain-functions/src/index.ts"
+            ],
+            "@mindarkai/fn-clients": [
+                "packages/fn-clients/src/index.ts"
+            ],
+            "@mindarkai/fns": [
+                "packages/fns/src/index.ts"
+            ],
+            "@mindarkai/frontend": [
+                "packages/frontend/src/index.ts"
+            ],
+            "@mindarkai/proto-nodes": [
+                "packages/proto-nodes/src/index.ts"
+            ],
+            "@mindarkai/sql-migrations": [
+                "packages/sql-migrations/src/index.ts"
+            ],
+            "@mindarkai/sql-tables": [
+                "packages/sql-tables/src/index.ts"
+            ],
+            "@mindarkai/types": [
+                "packages/types/src/index.ts"
+            ],
+            "@iyio/any-comp": [
+                "packages/any-comp/src/index.ts"
+            ],
+            "@iyio/any-comp-cli": [
+                "packages/any-comp-cli/src/index.ts"
+            ],
+            "@iyio/at-dot-css": [
+                "packages/at-dot-css/src/index.ts"
+            ],
+            "@iyio/common": [
+                "packages/iyio-common/src/index.ts"
+            ],
+            "@iyio/mdx-ui-builder": [
+                "packages/mdx-ui-builder/src/index.ts"
+            ],
+            "@iyio/mdx-ui-builder-react": [
+                "packages/mdx-ui-builder-react/src/index.ts"
+            ],
+            "@iyio/media-common": [
+                "packages/media-common/src/index.ts"
+            ],
+            "@iyio/nextjs-common": [
+                "packages/nextjs-common/src/index.ts"
+            ],
+            "@iyio/node-common": [
+                "packages/node-common/src/index.ts"
+            ],
+            "@iyio/nx-common": [
+                "packages/nx-common/src/index.ts"
+            ],
+            "@iyio/pdf-viewer": [
+                "packages/pdf-viewer/src/index.ts"
+            ],
+            "@iyio/protogen": [
+                "packages/protogen/src/index.ts"
+            ],
+            "@iyio/protogen-runtime": [
+                "packages/protogen-runtime/src/index.ts"
+            ],
+            "@iyio/react-common": [
+                "packages/react-common/src/index.ts"
+            ],
+            "@iyio/rtxt": [
+                "packages/rtxt/src/index.ts"
+            ],
+            "@iyio/svg-charts": [
+                "packages/svg-charts/src/index.ts"
+            ],
+            "@iyio/svg-charts-react": [
+                "packages/svg-charts-react/src/index.ts"
+            ],
+            "@iyio/syn-taxi": [
+                "packages/syn-taxi/src/index.ts"
+            ],
+            "@iyio/tmpl-gen": [
+                "packages/tmpl-gen/src/index.ts"
+            ],
+            "@iyio/vfs": [
+                "packages/vfs/src/index.ts"
+            ],
+            "@iyio/vfs-node": [
+                "packages/vfs-node/src/index.ts"
+            ],
+            "@iyio/vfs-react": [
+                "packages/vfs-react/src/index.ts"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "tmp",
+        "app-templates"
+    ]
+}
