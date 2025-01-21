@@ -43,45 +43,6 @@
             "@convo-lang/convo-vfs": [
                 "packages/convo-vfs/src/index.ts"
             ],
-            "@mindarkai/api": [
-                "packages/api/src/index.ts"
-            ],
-            "@mindarkai/backend": [
-                "packages/backend/src/index.ts"
-            ],
-            "@mindarkai/components": [
-                "packages/components/src/index.ts"
-            ],
-            "@mindarkai/mindarkai-common": [
-                "packages/mindarkai-common/src/index.ts"
-            ],
-            "@mindarkai/cs-any-comp": [
-                "packages/cs-any-comp/src/index.ts"
-            ],
-            "@mindarkai/domain-functions": [
-                "packages/domain-functions/src/index.ts"
-            ],
-            "@mindarkai/fn-clients": [
-                "packages/fn-clients/src/index.ts"
-            ],
-            "@mindarkai/fns": [
-                "packages/fns/src/index.ts"
-            ],
-            "@mindarkai/frontend": [
-                "packages/frontend/src/index.ts"
-            ],
-            "@mindarkai/proto-nodes": [
-                "packages/proto-nodes/src/index.ts"
-            ],
-            "@mindarkai/sql-migrations": [
-                "packages/sql-migrations/src/index.ts"
-            ],
-            "@mindarkai/sql-tables": [
-                "packages/sql-tables/src/index.ts"
-            ],
-            "@mindarkai/types": [
-                "packages/types/src/index.ts"
-            ],
             "@iyio/any-comp": [
                 "packages/any-comp/src/index.ts"
             ],
