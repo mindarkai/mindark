@@ -1,19 +1,22 @@
 import { CancelToken, DisposeContainer, OptionalId, ReadonlySubject, joinPaths, pushBehaviorSubjectAry, removeBehaviorSubjectAryValue, shortUuid, wAryPush, wAryRemove, wDeleteProp, wSetProp } from "@iyio/common";
 import { VfsItem } from "@iyio/vfs";
 import { BehaviorSubject } from "rxjs";
+import { ZodSchema } from "zod";
 import type { ArkRuntimeCtrl } from "./ArkRuntimeCtrl";
 import { arkParentPackagePath, arkSelfPackagePath, commonArkPackageTypes, mindarkUrlProtocol } from "./mindark-const";
 import { parseArkUrl } from "./mindark-lib";
 import { ArkMessage, ArkMessageDelivery, ArkPackage, ArkPathPart } from "./mindark-types";
 import { ArkEchoCtrl } from "./package-types/echo/ArkEchoCtrl";
 
-export interface ArkPackageCtrlOptions<TModel extends ArkPackage=ArkPackage>
+export interface ArkPackageCtrlOptions
 {
     runtime:ArkRuntimeCtrl|'self';
-    model:TModel;
+    pkg:ArkPackage;
+    configScheme?:ZodSchema;
+    requireConfig?:boolean;
 }
 
-export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
+export class ArkPackageCtrl<TConfig extends Record<string,any>=Record<string,any>>
 {
 
     public readonly id:string;
@@ -29,27 +32,48 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
     public get url(){return this._url.value}
 
     public readonly runtime:ArkRuntimeCtrl;
+    public readonly isRuntimeRoot:boolean;
 
-    public readonly model:TModel;
+    public readonly pkg:ArkPackage;
+
+    public readonly configScheme?:ZodSchema;
 
     public constructor({
         runtime,
-        model,
-    }:ArkPackageCtrlOptions<TModel>){
-        this.name=model.name;
-        this.id=model.id;
-        this.type=model.type;
-        this.model=model;
-        this._path=new BehaviorSubject<string>(this.name);
+        pkg,
+        configScheme,
+        requireConfig
+    }:ArkPackageCtrlOptions){
+        this.name=pkg.name;
+        this.id=pkg.id;
+        this.type=pkg.type;
+        this.pkg=pkg;
+        this.configScheme=configScheme??this._configScheme;
+        this._path=new BehaviorSubject<string>(this.name+'.ark-'+this.type);
         this._url=new BehaviorSubject<string>(`${mindarkUrlProtocol}./${this.name}`);
+        if(this.configScheme){
+            const config=pkg.data?.[pkg.type];
+            if(config || requireConfig){
+                const r=this.configScheme.safeParse(config);
+                if(!r.success){
+                    const msg=`Invalid package config for package type "${pkg.type}"`;
+                    if(!(typeof runtime === 'string')){
+                        runtime.log.error(msg,r.error,pkg);
+                    }
+                    throw new Error(msg);
+                }
+            }
+        }
         if(runtime==='self'){
             this.runtime=this as any;
+            this.isRuntimeRoot=true;
         }else{
             this.runtime=runtime;
+            this.isRuntimeRoot=false;
         }
         this.idMap[this.id]=this;
-        if(this.model.tags){
-            for(const t of this.model.tags){
+        if(this.pkg.tags){
+            for(const t of this.pkg.tags){
                 this.tagMap[t]=[this];
             }
         }
@@ -68,8 +92,8 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
 
     protected async onInitAsync()
     {
-        if(this.model.children){
-            const copy=[...this.model.children];
+        if(this.pkg.children && !(this.type===commonArkPackageTypes.runtime && !this.isRuntimeRoot)){
+            const copy=[...this.pkg.children];
             for(const child of copy){
                 await this.addChildModelAsync(child);
                 if(this.isDisposed){
@@ -88,6 +112,9 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
             return;
         }
         this._isDisposed=true;
+        for(const child of this.children){
+            child.dispose();
+        }
         this.onDispose();
         this.disposables.dispose();
         if(this.parent){
@@ -100,6 +127,29 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
     protected onDispose()
     {
         // do nothing
+    }
+
+
+
+    public getTmpDir(){
+        const tmp=this.runtime.getConfig()?.tmpDir;
+        if(!tmp){
+            return undefined;
+        }
+        return joinPaths(tmp,this.id);
+    }
+
+    public getConfig():TConfig|undefined{
+        return this.pkg.data?.[this.type];
+    }
+    protected _configScheme?:ZodSchema;
+
+    public getFullName(separator='-'):string
+    {
+        if(!this.parent || this.isRuntimeRoot){
+            return this.pkg.name;
+        }
+        return this.parent.getFullName()+separator+this.name
     }
 
 
@@ -169,8 +219,10 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
     }
 
     private _getPath():string{
-        if(this.parent && this.parent.type!==commonArkPackageTypes.runtime){
-            return this.parent._getPath()+'/'+this.name;
+        if(this.isRuntimeRoot){
+            return this.pkg.path??this.name+'.ark-'+this.type
+        }else if(this.parent){
+            return this.parent._getPath()+'/'+this.name+'.ark-'+this.type;
         }else{
             return this.name;
         }
@@ -271,11 +323,11 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
             child.parent.removeChild(child);
         }
 
-        if(!this.model.children?.includes(child.model)){
-            if(this.model.children){
-                wSetProp(this.model,'children',[]);
+        if(!this.pkg.children?.includes(child.pkg)){
+            if(this.pkg.children){
+                wSetProp(this.pkg,'children',[]);
             }
-            wAryPush(this.model.children,child.model);
+            wAryPush(this.pkg.children,child.pkg);
         }
         child.setParent(this);
         pushBehaviorSubjectAry(this._children,child);
@@ -289,8 +341,8 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
             return false;
         }
 
-        if(this.model.children){
-            wAryRemove(this.model.children,child.model);
+        if(this.pkg.children){
+            wAryRemove(this.pkg.children,child.pkg);
         }
         child.setParent(null);
         removeBehaviorSubjectAryValue(this._children,child);
@@ -323,10 +375,14 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
     }
 
     public getChildByModel(model:ArkPackage):ArkPackageCtrl|undefined{
-        return this.children.find(c=>c.model===model);
+        return this.children.find(c=>c.pkg===model);
     }
 
     public getChildByName(name:string):ArkPackageCtrl|undefined{
+        const i=name.indexOf('.ark-');
+        if(i!==-1){
+            name=name.substring(0,i);
+        }
         for(let i=0;i<this._children.value.length;i++){
             const c=this._children.value[i];
             if(c?.name===name){
@@ -336,7 +392,11 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
         return undefined;
     }
 
-    public selectByPath(path:ArkPathPart[],startIndex=0):ArkPackageCtrl|undefined{
+    public selectByPath(path:ArkPathPart[]|string,startIndex=0):ArkPackageCtrl|undefined{
+        if(typeof path === 'string'){
+            const url=parseArkUrl(path);
+            path=url.path;
+        }
         let d:ArkPackageCtrl|undefined=this;
         for(let i=startIndex;i<path.length && d;i++){
             const p=path[i];
@@ -379,11 +439,11 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
         if(this.tags.includes(tag)){
             return;
         }
-        if(!this.model.tags){
-            wSetProp(this.model,'tags',[]);
+        if(!this.pkg.tags){
+            wSetProp(this.pkg,'tags',[]);
         }
-        if(!this.model.tags?.includes(tag)){
-            wAryPush(this.model.tags,tag);
+        if(!this.pkg.tags?.includes(tag)){
+            wAryPush(this.pkg.tags,tag);
         }
 
         let p:ArkPackageCtrl|null=this;
@@ -403,11 +463,11 @@ export class ArkPackageCtrl<TModel extends ArkPackage=ArkPackage>
             return;
         }
 
-        if(this.model.tags?.includes(tag)){
-            wAryRemove(this.model.tags,tag);
+        if(this.pkg.tags?.includes(tag)){
+            wAryRemove(this.pkg.tags,tag);
         }
-        if(this.model.tags?.length===0){
-            wDeleteProp(this.model,'tags');
+        if(this.pkg.tags?.length===0){
+            wDeleteProp(this.pkg,'tags');
         }
 
         let p:ArkPackageCtrl|null=this;

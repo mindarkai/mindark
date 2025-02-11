@@ -5,7 +5,7 @@ export const getStdArkPackageCtrlRefAsync=async (type:string):Promise<ArkPackage
     switch(type){
 
         case commonArkPackageTypes.runtime:
-            return {type,controllerClass:(await import('./ArkRuntimeCtrl')).ArkRuntimeCtrl};
+            return {type,controllerClass:(await import('./ArkRuntimeEdgeCtrl')).ArkRuntimeEdgeCtrl};
 
         case commonArkPackageTypes.runtimeDef:
             return {type,controllerClass:(await import('./RuntimeDefCtrl')).RuntimeDefCtrl};

@@ -26,21 +26,26 @@ export interface ArkPackage
     children?:ArkPackage[];
     controllers?:ArkPackageCtrlRef[];
     tags?:string[];
-    runtimeDef?:ArkRuntimeDef;
 }
 
-export interface Echo extends ArkPackage
+export interface EchoConfig
 {
+
 }
 
 
-export interface ArkRuntime extends ArkPackage
+export interface ArkRuntimeConfig
 {
     /**
      * Prefixed used to create URLs for a runtime. UrlPrefix should include a protocol and any
      * application specific path prefix.
      */
     urlPrefix?:string;
+
+    /**
+     * Path to a local directory to use as a tmp dir.
+     */
+    tmpDir?:string;
 }
 
 export interface EchoId{
@@ -58,11 +63,9 @@ export interface EchoId{
     url?:string;
 }
 
-export interface Lattice
-{
-    name:string;
-}
-
+/**
+ * Provides references to a package controller
+ */
 export interface ArkPackageCtrlRef
 {
     type:string;
@@ -158,7 +161,115 @@ export interface ArkUrl
  * Defines the system properties and location of resources of a Runtime. ArkRuntimeDef are used
  * runtime orchestrators to create and deploy runtimes.
  */
-export interface ArkRuntimeDef
+export interface RuntimeDefConfig
 {
+    /**
+     * Path on the VFS to a package
+     */
+    packagePath:string;
+
+    /**
+     * Path to a docker file. Relative paths are relative to the `packagePath` property
+     */
+    dockerFilePath?:string;
+
+    /**
+     * The context path that is used to build the docker image. The default value is the parent
+     * directory of `dockerFilePath` or the value of `packagePath` if `dockerFilePath` is not
+     * defined
+     */
+    dockerContextPath?:string;
+
+    sourceMode?:RuntimeDefSourceMode;
+
+    /**
+     * Path in the created container that the source package content will be copied or mounted to.
+     * @default "/ark-package"
+     */
+    containerSourcePath?:string;
+
+    /**
+     * Desired CPU core count
+     */
+    cpuCount?:number;
+
+    memoryMb?:number;
+
+    /**
+     * Name of the network to connect the container to.
+     * @default "ark-default"
+     */
+    network?:string;
+
+    arch?:RuntimeDefArch;
+
+    /**
+     * Additional build args to pass with building docker file
+     */
+    dockerBuildArgs?:string[];
+
+    /**
+     * Additional docker build args
+     */
+    dockerRunArgs?:string[];
+
+    env?:Record<string,string|RuntimeDefEnvSource>;
+
+    ports?:RuntimeDefPortMapping[];
+
+    volumes?:RuntimeDefVolumeMapping[];
+}
+
+export interface RuntimeDefEnvSource{
+    /**
+     * Name of local env var to use. Defaults to the key of the env var.
+     */
+    local?:string;
+}
+
+export interface RuntimeDefPortMapping
+{
+    /**
+     * Internal port in container
+     */
+    i?:number;
+
+    /**
+     * External exposed port
+     */
+    o?:number;
+}
+
+export interface RuntimeDefVolumeMapping
+{
+    /**
+     * Host source
+     */
+    src:string;
+
+    /**
+     * Container mount path
+     */
+    mount:string;
+}
+
+export type RuntimeDefArch='amd64'|'arm64';
+
+export type RuntimeDefSourceMode='mount'|'copy'
+
+export interface RuntimeOrchestratorConfig
+{
+    /**
+     * The underlying container engine the orchestrator will use.
+     */
+    engine?:RuntimeOrchestratorEngine;
+
+    /**
+     * Max number of concurrent image builds
+     */
+    maxConcurrentBuilds?:number;
+
 
 }
+
+export type RuntimeOrchestratorEngine='podman'|'docker'|'kubernetes'

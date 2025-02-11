@@ -9,7 +9,7 @@ export const loadEchoAsync=async ()=>{
     await runtime.initAsync();
 
     const lattice=await runtime.addChildFromVfsAsync('data/files/main.ark-lattice');
-    console.log('lattice',JSON.stringify(lattice?.model,null,4));
+    console.log('lattice',JSON.stringify(lattice?.pkg,null,4));
 
     await delayAsync(5000);
 

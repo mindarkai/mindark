@@ -1,10 +1,10 @@
 export const createJsLoader=async ()=>{
     const blob=new Blob([js],{type:'text/javascript'});
     const url=URL.createObjectURL(blob);
-    console.log('hio 👋 👋 👋 URL',url);
+    console.log('URL',url);
 
     const mod=await import(url);
-    console.log('hio 👋 👋 👋',mod);
+    console.log('load mod',mod);
 }
 
 const js=/*javascript*/`

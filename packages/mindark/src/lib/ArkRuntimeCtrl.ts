@@ -5,48 +5,75 @@ import { ArkPackageCtrl, ArkPackageCtrlOptions } from './ArkPackageCtrl';
 import { ArkShellCtrl } from './ArkShellCtrl';
 import { arkControllerClassExportName, arkPackageFilename } from './mindark-const';
 import { arkPackageFromVfsItem, getArkControllerInterfaceTypeByPath, isValidArkPackageCtrlRef, mergeArkPackages } from './mindark-lib';
-import { ArkPackage, ArkPackageCtrlRef, ArkRuntime } from './mindark-types';
+import { ArkRuntimeConfigScheme } from './mindark-schemes';
+import { ArkPackage, ArkPackageCtrlRef, ArkRuntimeConfig } from './mindark-types';
 import { getStdArkPackageCtrlRefAsync } from './std-ark-package-refs';
+
 
 export interface ArkRuntimeCtrlOptions
 {
     id?:string;
     name?:string;
     vfs?:VfsCtrl;
-    model?:Partial<ArkRuntime>;
+    pkg?:ArkPackage,
+    config?:ArkRuntimeConfig;
 }
 
-export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntime>
+export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntimeConfig>
 {
 
     public readonly log:Log;
     public readonly vfs:VfsCtrl;
 
-    public readonly urlPrefix?:string;
+    public static async loadRuntimeAsync(item:string|VfsItem,options?:ArkRuntimeCtrlOptions){
+        const loaderRuntime=new ArkRuntimeCtrl({vfs:options?.vfs});
+        try{
+            const pkg=await loaderRuntime.loadPackageAsync(item);
+            if(!pkg){
+                throw new Error('Unable to load runtime package');
+            }
+            const runtime=new ArkRuntimeCtrl({
+                ...options,
+                pkg:options?.pkg?mergeArkPackages(pkg,options.pkg):pkg,
+            });
+            await runtime.initAsync();
+            return runtime;
+        }finally{
+            loaderRuntime.dispose();
+        }
+    }
 
+    public get urlPrefix():string|undefined{
+        return this.getConfig()?.urlPrefix;
+    }
 
 
     public constructor({
-        model,
-        id=model?.id??shortUuid(),
-        name=model?.name??'default-ark-runtime',
+        pkg,
+        config,
+        id=pkg?.id??shortUuid(),
+        name=pkg?.name??'default-ark-runtime',
         vfs:_vfs=vfs(),
     }:ArkRuntimeCtrlOptions={}){
         super({
             runtime:'self',
-            model:{
+            pkg:{
                 id,
                 isModule:true,
                 name:'runtime-root',
                 path:'/',
                 description:'Root of the current ARK runtime',
                 children:[],
-                ...dupDeleteUndefined(model),
+                ...dupDeleteUndefined(pkg),
                 type:'runtime',
-            }
-
+                data:{
+                    ...pkg?.data,
+                    runtime:config??pkg?.data?.['runtime']
+                },
+            },
+            configScheme:ArkRuntimeConfigScheme,
         });
-        this.urlPrefix=model?.urlPrefix;
+
         this.log=createLog(name);
         this.vfs=_vfs;
     }
@@ -135,7 +162,7 @@ export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntime>
         if(!ref){
             ref=await getStdArkPackageCtrlRefAsync(model.type);
         }
-        const ctrl=ref?await this.createPackageCtrlByRefAsync(model,ref):new ArkPackageCtrl({runtime:this,model});
+        const ctrl=ref?await this.createPackageCtrlByRefAsync(model,ref):new ArkPackageCtrl({runtime:this,pkg: model});
 
         if(init){
             await ctrl.initAsync();
@@ -145,7 +172,7 @@ export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntime>
     }
 
     public async createPackageCtrlByRefAsync(model:ArkPackage,ref:ArkPackageCtrlRef):Promise<ArkPackageCtrl>{
-        const options:ArkPackageCtrlOptions={model,runtime:this};
+        const options:ArkPackageCtrlOptions={pkg: model,runtime:this};
         if(ref.controllerClass){
             return new ref.controllerClass(options);
         }
@@ -221,4 +248,4 @@ export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntime>
 
 }
 
-const scanDirReg=/^.+\.ark-(controller-)?([\w-]+)(\.json)?$/;
+const scanDirReg=/^.+\.ark-(controller-)?([\w]+)(\.json)?$/;

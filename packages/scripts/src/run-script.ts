@@ -1,5 +1,5 @@
 import { openaiConvoModule } from '@convo-lang/convo-lang-openai';
-import { rootScope } from "@iyio/common";
+import { parseCliArgs, rootScope } from "@iyio/common";
 import { pathExistsAsync } from "@iyio/node-common";
 import { initBackend } from "@mindarkai/backend";
 import { basename } from "path";
@@ -49,7 +49,16 @@ const main=async ()=>{
 
         const start=Date.now();
 
-        await fns[0]();
+        const args=parseCliArgs({args:process.argv});
+
+        for(const a in args){
+            const v=args[a];
+            if(v && v.length===1){
+                (args as any)[a]=v[0];
+            }
+        }
+
+        await fns[0](args);
 
         const end=Date.now();
         const mem=process.memoryUsage();

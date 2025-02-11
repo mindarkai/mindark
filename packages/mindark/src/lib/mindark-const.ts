@@ -10,7 +10,7 @@ export const arkPackageUrlProtocol='pkg';
 
 export const commonArkPackageTypes={
     runtime:'runtime',
-    runtimeDef:'runtime-def',
+    runtimeDef:'runtimeDef',
     orchestrator:'orchestrator',
     db:'db',
     echo:'echo',
@@ -23,3 +23,14 @@ export const commonArkPackageTypes={
 
 export const arkSelfPackagePath='.';
 export const arkParentPackagePath='..';
+
+/**
+ * Name of the subdirectory within a package used by the runtime for writing runtime related files.
+ * .ark-runtime is ignored when creating package archives
+ */
+export const arkInPackageRuntimeDir='.ark-runtime';
+
+/**
+ * Name of temp directory within a package
+ */
+export const arkInPackageTmpDir=arkInPackageRuntimeDir+'/tmp'

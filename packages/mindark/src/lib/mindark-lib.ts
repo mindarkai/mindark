@@ -95,7 +95,7 @@ export const getArkPackageTypeFromPath=(path:string):string|undefined=>{
             return undefined;
         }
     }
-    const ext=getFileExt(path,false,true);
+    const ext=getFileExt(path,false,false);
     if(ext?.startsWith('ark-')){
         return ext.substring(4);
     }else{
