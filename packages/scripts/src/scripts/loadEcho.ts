@@ -5,7 +5,7 @@ export const loadEchoAsync=async ()=>{
 
     triggerNodeBreakpoint(true);
     const runtime=new ArkRuntimeCtrl();
-    await runtime.initAsync();
+    runtime.init();
 
     const echo=await runtime.loadPackageAsync('data/files/fred.ark-echo');
     console.log('ECHO',echo);

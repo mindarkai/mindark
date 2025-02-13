@@ -11,7 +11,7 @@ export const getStdArkPackageCtrlRefAsync=async (type:string):Promise<ArkPackage
             return {type,controllerClass:(await import('./RuntimeDefCtrl')).RuntimeDefCtrl};
 
         case commonArkPackageTypes.orchestrator:
-            return {type,controllerClass:(await import('./RuntimeOrchestratorCtrl')).RuntimeOrchestratorCtrl};
+            return {type,controllerClass:(await import('./OrchestratorCtrl')).OrchestratorCtrl};
 
         case commonArkPackageTypes.db:
             return {type,controllerClass:(await import('./package-types/db/ArkDbCtrl')).ArkDbCtrl};

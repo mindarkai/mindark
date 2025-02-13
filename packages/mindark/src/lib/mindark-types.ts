@@ -272,4 +272,4 @@ export interface RuntimeOrchestratorConfig
 
 }
 
-export type RuntimeOrchestratorEngine='podman'|'docker'|'kubernetes'
+export type RuntimeOrchestratorEngine='podman'|'docker'|'kubernetes';

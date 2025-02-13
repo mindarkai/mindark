@@ -1,7 +1,7 @@
 import { CancelToken, PromiseSource, createPromiseSource, escapeCommandLineValue, isRooted, joinPaths, strHashBase64Fs } from "@iyio/common";
 import { ArkPackageCtrl } from "./ArkPackageCtrl";
 import { ArkRuntimeCtrl } from "./ArkRuntimeCtrl";
-import { RuntimeOrchestratorCtrl } from "./RuntimeOrchestratorCtrl";
+import { OrchestratorCtrl } from "./OrchestratorCtrl";
 import { RuntimeDefConfig } from "./mindark-types";
 
 /* @todo
@@ -10,7 +10,7 @@ import { RuntimeDefConfig } from "./mindark-types";
 
 */
 
-export class RuntimeDefDeploymentCtrl
+export class ContainerDeployment
 {
     public readonly config:RuntimeDefConfig;
 
@@ -22,14 +22,14 @@ export class RuntimeDefDeploymentCtrl
 
     public readonly workingDir:string;
 
-    private readonly orchestrator:RuntimeOrchestratorCtrl;
+    private readonly orchestrator:OrchestratorCtrl;
 
     public readonly runtime:ArkRuntimeCtrl;
 
     private readonly lifetimePromiseSource:PromiseSource<void>;
     public get lifetimePromise(){return this.lifetimePromiseSource.promise}
 
-    public constructor(config:RuntimeDefConfig,pkgCtrl:ArkPackageCtrl,workingDir:string,orchestrator:RuntimeOrchestratorCtrl)
+    public constructor(config:RuntimeDefConfig,pkgCtrl:ArkPackageCtrl,workingDir:string,orchestrator:OrchestratorCtrl)
     {
         this.config=config;
         this.pkgCtrl=pkgCtrl;
@@ -54,7 +54,7 @@ export class RuntimeDefDeploymentCtrl
 
     private getDockerProps()
     {
-        const engine=this.orchestrator.getConfig()?.engine??RuntimeOrchestratorCtrl.defaultEngine;
+        const engine=this.orchestrator.getConfig()?.engine??OrchestratorCtrl.defaultEngine;
         return {engine,tag:this.tag,dockerCmd:engine==='podman'?'podman':'docker'}
     }
 
@@ -235,12 +235,14 @@ export class RuntimeDefDeploymentCtrl
                     throwOnError:true,
                 });
             }
+            if(cancel.isCanceled){
+                return;
+            }
 
             await this.runtime.vfs.execShellCmdAsync({
                 shellCmd:`${dockerCmd} attach ${tag}`,
                 cwd,
-                throwOnError:true,
-                cancel
+                throwOnError:true
             });
         }catch(ex){
             if(cancel?.isCanceled){

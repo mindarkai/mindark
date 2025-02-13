@@ -1,10 +1,10 @@
 import { CancelToken, Lock, delayAsync } from "@iyio/common";
 import { ArkPackageCtrl, ArkPackageCtrlOptions } from "./ArkPackageCtrl";
-import { RuntimeDefDeploymentCtrl } from "./RuntimeDefDeploymentCtrl";
+import { ContainerDeployment } from "./ContainerDeployment";
 import { RuntimeOrchestratorConfigScheme } from "./mindark-schemes";
 import { RuntimeDefConfig, RuntimeOrchestratorConfig, RuntimeOrchestratorEngine } from "./mindark-types";
 
-export class RuntimeOrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorConfig>
+export class OrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorConfig>
 {
 
     public static readonly defaultUpdateDelayMs=2500;
@@ -35,9 +35,9 @@ export class RuntimeOrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorC
     }
 
 
-    private readonly deployments:RuntimeDefDeploymentCtrl[]=[];
+    private readonly deployments:ContainerDeployment[]=[];
 
-    public addDeployment(def:RuntimeDefConfig,workingDir:string):RuntimeDefDeploymentCtrl|undefined
+    public addDeployment(def:RuntimeDefConfig,workingDir:string):ContainerDeployment|undefined
     {
         if(this.isDisposed){
             return undefined;
@@ -46,13 +46,13 @@ export class RuntimeOrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorC
         if(!ctrl){
             return undefined;
         }
-        const deployment=new RuntimeDefDeploymentCtrl(def,ctrl,workingDir,this);
+        const deployment=new ContainerDeployment(def,ctrl,workingDir,this);
         this.deployments.push(deployment);
         this.queueUpdate();
         return deployment;
     }
 
-    public async runDeployAsync(def:RuntimeDefConfig,workingDir:string,cancel?:CancelToken):Promise<RuntimeDefDeploymentCtrl|undefined>
+    public async runDeployAsync(def:RuntimeDefConfig,workingDir:string,cancel?:CancelToken):Promise<ContainerDeployment|undefined>
     {
 
         const deployment=this.addDeployment(def,workingDir);
@@ -118,11 +118,4 @@ export class RuntimeOrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorC
 
 
     }
-}
-
-interface DockerComposeDeployOptions
-{
-    compose:string;
-    deployments:RuntimeDefDeploymentCtrl[];
-    usePodman:boolean;
 }
