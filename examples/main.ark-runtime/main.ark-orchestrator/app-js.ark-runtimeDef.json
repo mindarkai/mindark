@@ -1,0 +1,12 @@
+{
+    "type":"runtimeDef",
+    "data":{
+        "runtimeDef":{
+            "packagePath":"../app-js.ark-runtime",
+            "env":{
+                "fun":"frogs",
+                "pants":{"local":"VSCODE_GIT_ASKPASS_MAIN"}
+            }
+        }
+    }
+}

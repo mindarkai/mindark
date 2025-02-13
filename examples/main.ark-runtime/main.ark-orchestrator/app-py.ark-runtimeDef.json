@@ -1,0 +1,8 @@
+{
+    "type":"runtimeDef",
+    "data":{
+        "runtimeDef":{
+            "packagePath":"../app-py.ark-runtime"
+        }
+    }
+}
