@@ -1,5 +1,14 @@
 export * from './lib/ArkPackageCtrl';
 export * from './lib/ArkRuntimeCtrl';
+export * from './lib/ArkRuntimeEdgeCtrl';
+export * from './lib/ArkShellCtrl';
+export * from './lib/ArkTransaction';
+export * from './lib/ContainerDeployment';
+export * from './lib/MindMapCtrl';
+export * from './lib/OrchestratorCtrl';
+export * from './lib/RuntimeDefCtrl';
+export * from './lib/ark-stdio-lib';
+export * from './lib/mindark-const';
 export * from './lib/mindark-lib';
 export * from './lib/mindark-schemes';
 export * from './lib/mindark-types';
@@ -10,4 +19,5 @@ export * from './lib/package-types/inference/ArkInferenceCtrl';
 export * from './lib/package-types/interface/ArkInterfaceCtrl';
 export * from './lib/package-types/lattice/ArkLatticeCtrl';
 export * from './lib/package-types/pulse/ArkPulseCtrl';
+export * from './lib/std-ark-package-refs';
 

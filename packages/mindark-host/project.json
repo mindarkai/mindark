@@ -1,0 +1,61 @@
+{
+    "name": "mindark-host",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "packages/mindark-host/src",
+    "projectType": "library",
+    "targets": {
+        "build": {
+            "executor": "@iyio/nx-common:lib-builder",
+            "outputs": ["{options.outputPath}"],
+            "options": {
+                "outputPath": "dist/packages/mindark-host",
+                "main": "packages/mindark-host/src/index.ts",
+                "tsConfig": "packages/mindark-host/tsconfig.lib.json",
+                "assets": ["packages/mindark-host/*.md"],
+                "esbuildTargets":[
+                    {
+                        "srcDir":"packages/mindark-host/src/bin",
+                        "outDir":"dist/packages/mindark-host/bin",
+                        "options":{
+                            "bundle":true,
+                            "platform":"node",
+                            "target":"node18",
+                            "minify":false,
+                            "banner": {"js":"#!/usr/bin/env node"},
+                            "sourcemap":"external"
+                        }
+                    }
+                ]
+            }
+        },
+        "publish": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "node tools/scripts/publish.mjs mindark-host {args.ver} {args.tag}"
+            },
+            "dependsOn": ["build"]
+        },
+        "lint": {
+            "executor": "@nrwl/linter:eslint",
+            "outputs": ["{options.outputFile}"],
+            "options": {
+                "lintFilePatterns": ["packages/mindark-host/**/*.ts"]
+            }
+        },
+        "test": {
+            "executor": "@nrwl/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "packages/mindark-host/jest.config.ts",
+                "passWithNoTests": true
+            },
+            "configurations": {
+                "ci": {
+                    "ci": true,
+                    "codeCoverage": true
+                }
+            }
+        }
+    },
+    "tags": []
+}
