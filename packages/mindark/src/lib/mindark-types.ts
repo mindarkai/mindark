@@ -46,6 +46,8 @@ export interface ArkRuntimeConfig
      * Path to a local directory to use as a tmp dir.
      */
     tmpDir?:string;
+
+    logMessages?:boolean;
 }
 
 export interface EchoId{
@@ -112,9 +114,10 @@ export type ArkControllerInterfaceType='direct'|'stdio';
 
 export type ArkMessageTransportType='http'|'stdio'|'humanChat';
 
-export interface ArkMessage
+export interface ArkMessageOptionalId
 {
-    id:string;
+    id?:string;
+
     type:string;
 
     /**
@@ -128,6 +131,11 @@ export interface ArkMessage
     to:string;
 
     payload?:any;
+}
+
+export interface ArkMessage extends ArkMessageOptionalId
+{
+    id:string;
 }
 
 export interface ArkMessageDelivery

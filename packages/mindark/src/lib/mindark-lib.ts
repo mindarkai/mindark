@@ -3,8 +3,8 @@ import { VfsItem } from "@iyio/vfs";
 import { ZodSchema } from "zod";
 import { ArkRuntimeCtrl } from "./ArkRuntimeCtrl";
 import { arkPackageUrlProtocol } from "./mindark-const";
-import { ArkPackageScheme } from "./mindark-schemes";
-import { ArkControllerInterfaceType, ArkPackage, ArkPackageCtrlRef, ArkPathPart, ArkUrl } from "./mindark-types";
+import { ArkMessageOptionalIdScheme, ArkMessageScheme, ArkPackageScheme } from "./mindark-schemes";
+import { ArkControllerInterfaceType, ArkMessage, ArkMessageOptionalId, ArkPackage, ArkPackageCtrlRef, ArkPathPart, ArkUrl } from "./mindark-types";
 
 
 export const readEchoPackageAsync=async <T extends ArkPackage>(item:VfsItem,scheme:ZodSchema,runtime:ArkRuntimeCtrl,defaults?:any):Promise<T>=>{
@@ -30,6 +30,22 @@ export const isArkPackage=(value:any):value is ArkPackage=>{
         return false;
     }
     const r=ArkPackageScheme.safeParse(value);
+    return r.success;
+}
+
+export const isArkMessage=(value:any):value is ArkMessage=>{
+    if(!value || (typeof value !=='object')){
+        return false;
+    }
+    const r=ArkMessageScheme.safeParse(value);
+    return r.success;
+}
+
+export const isArkMessageOptionalId=(value:any):value is ArkMessageOptionalId=>{
+    if(!value || (typeof value !=='object')){
+        return false;
+    }
+    const r=ArkMessageOptionalIdScheme.safeParse(value);
     return r.success;
 }
 

@@ -1,10 +1,11 @@
 import { CancelToken, DisposeContainer, OptionalId, PauseableSubject, ReadonlySubject, joinPaths, pushBehaviorSubjectAry, removeBehaviorSubjectAryValue, shortUuid, wAryPush, wAryRemove, wDeleteProp, wSetProp } from "@iyio/common";
-import { VfsItem } from "@iyio/vfs";
+import { VfsItem, VfsShellStream } from "@iyio/vfs";
 import { ZodSchema } from "zod";
 import type { ArkRuntimeCtrl } from "./ArkRuntimeCtrl";
 import { ArkRuntimeTransaction as ArkTransaction } from "./ArkTransaction";
+import { ArkStdioLineReader, arkStdioMessageTypeMsg, createArkStdioMessageLine } from "./ark-stdio-lib";
 import { arkParentPackagePath, arkSelfPackagePath, commonArkPackageTypes, mindarkUrlProtocol } from "./mindark-const";
-import { parseArkUrl } from "./mindark-lib";
+import { isArkMessageOptionalId, parseArkUrl } from "./mindark-lib";
 import { ArkMessage, ArkMessageDelivery, ArkPackage, ArkPathPart } from "./mindark-types";
 
 export interface ArkPackageCtrlOptions
@@ -591,6 +592,10 @@ export class ArkPackageCtrl<TConfig extends Record<string,any>=Record<string,any
             msg={...msg,id:shortUuid()}
         }
 
+        if(this.runtime.getConfig()?.logMessages){
+            this.runtime.log.info('Send Ark Message',msg);
+        }
+
         const delivery:ArkMessageDelivery={
             message:msg as ArkMessage,
             to:parseArkUrl(msg.to),
@@ -635,6 +640,46 @@ export class ArkPackageCtrl<TConfig extends Record<string,any>=Record<string,any
     }
 
     protected onMessage(msg:ArkMessage,delivery?:ArkMessageDelivery){
+        if(this._remoteStream){
+            this._remoteStream.writeLine(createArkStdioMessageLine(arkStdioMessageTypeMsg,msg))
+        }
+    }
+
+    private _remoteStream:VfsShellStream|null=null;
+    public setRemoteStream(remoteStream:VfsShellStream|null){
+        if(remoteStream && remoteStream.exitCode!==undefined){
+            return;
+        }
+
+        this._remoteStream=remoteStream;
+
+        if(!remoteStream){
+            return;
+        }
+
+        const reader=new ArkStdioLineReader();
+
+        const sub=remoteStream.onOutput.subscribe(v=>{
+            if(this._remoteStream!==remoteStream){
+                sub.unsubscribe();
+                return;
+            }
+
+            reader.append(v,(type,value)=>{
+                if(type===arkStdioMessageTypeMsg && isArkMessageOptionalId(value)){
+                    this.sendMessage(value);
+                }
+            })
+
+        })
+
+        remoteStream.exitPromise.then(v=>{
+            sub.unsubscribe();
+            if(this._remoteStream===remoteStream){
+                this._remoteStream=null;
+            }
+        })
+
 
     }
 }

@@ -1,4 +1,5 @@
 import { CancelToken, PromiseSource, createPromiseSource, escapeCommandLineValue, isRooted, joinPaths, strHashBase64Fs } from "@iyio/common";
+import { VfsShellStream } from "@iyio/vfs";
 import { ArkPackageCtrl } from "./ArkPackageCtrl";
 import { ArkRuntimeCtrl } from "./ArkRuntimeCtrl";
 import { OrchestratorCtrl } from "./OrchestratorCtrl";
@@ -85,7 +86,21 @@ export class ContainerDeployment
                 throwOnError:true,
                 cancel
             });
-            return tag;
+
+            const inspection=await this.runtime.vfs.execShellCmdAsync({
+                shellCmd:`${dockerCmd} inspect ${tag}---image:latest`,
+                cwd:this.cwd,
+                noLog:true,
+            })
+            const info:{
+               Id?:string,
+            }|undefined=JSON.parse(inspection.output)?.[0];
+
+            if(!info?.Id){
+                throw new Error(`Unable to get image id for package after build - ${this.cwd}`)
+            }
+
+            return info.Id;
         }catch(ex){
             this.runtime.log.error(`Failed to build image for package - ${this.cwd}`,ex);
             return undefined;
@@ -94,7 +109,7 @@ export class ContainerDeployment
         }
     }
 
-    public async runAsync(cancel:CancelToken)
+    public async runAsync(imageId:string,cancel:CancelToken)
     {
 
         try{
@@ -145,7 +160,7 @@ export class ContainerDeployment
 
             const labelPlaceholder='**{labels}**'
 
-            let cmd=`${dockerCmd} run --detach ${
+            let cmd=`${dockerCmd} run --interactive ${
                 labelPlaceholder
             } --network=${
                 networkName
@@ -169,8 +184,7 @@ export class ContainerDeployment
                 escapeCommandLineValue(tag+'---image')
             }`;
             // todo - envs, mounts
-
-            const hash=strHashBase64Fs(cmd);
+            const hash=strHashBase64Fs(imageId+':::::'+cmd);
             const labelKey='mindark-run-hash';
             cmd=cmd.replace(labelPlaceholder,`--label ${labelKey}=${hash}`);
 
@@ -196,7 +210,8 @@ export class ContainerDeployment
                     },
                     Config?:{
                         Labels?:Record<string,any>
-                    }
+                    },
+                    Image?:string,
                 }[]|undefined=JSON.parse(inspection.output);
                 const info=infos?.find(i=>i.Config?.Labels?.[labelKey]);
                 const currentHash=info?.Config?.Labels?.[labelKey];
@@ -222,15 +237,17 @@ export class ContainerDeployment
                 this.stopAsync();
             })
 
+            let stream:VfsShellStream;
+
             if(action==='create'){
-                await this.runtime.vfs.execShellCmdAsync({
+                stream=this.runtime.vfs.execShellCmdStream({
                     shellCmd:cmd,
                     cwd,
                     throwOnError:true,
                 });
             }else{
-                await this.runtime.vfs.execShellCmdAsync({
-                    shellCmd:`${dockerCmd} start ${tag}`,
+                stream=this.runtime.vfs.execShellCmdStream({
+                    shellCmd:`${dockerCmd} start --attach --interactive ${tag}`,
                     cwd,
                     throwOnError:true,
                 });
@@ -239,11 +256,10 @@ export class ContainerDeployment
                 return;
             }
 
-            await this.runtime.vfs.execShellCmdAsync({
-                shellCmd:`${dockerCmd} attach ${tag}`,
-                cwd,
-                throwOnError:true
-            });
+            this.pkgCtrl.setRemoteStream(stream);
+
+            await stream.exitPromise;
+
         }catch(ex){
             if(cancel?.isCanceled){
                 return;

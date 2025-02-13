@@ -24,13 +24,15 @@ export const loadAsync=async (args:LoadArgs)=>{
     console.log(`Load runtime - ${path}`)
     const runtime=await ArkRuntimeCtrl.loadRuntimeAsync(path,{
         config:{
-            tmpDir:'data/.ark-tmp'
+            tmpDir:'data/.ark-tmp',
+            logMessages:true,
         }
     });
 
     const help=()=>{
         console.log('load      pkgPath        load package');
         console.log('debug                    Trigger debugger');
+        console.log('send   to type payload   Send message');
         console.log('exit                     Exit runtime');
     }
     help();
@@ -59,6 +61,16 @@ export const loadAsync=async (args:LoadArgs)=>{
 
                 case 'debug':
                     triggerNodeBreakpoint();
+                    break;
+
+                case 'send':
+                    const msg={
+                        to:arg0??'to',
+                        type:args[1]??'type',
+                        payload:args[2]??'payload'
+                    }
+                    console.log('Sending',msg);
+                    runtime.sendMessage(msg)
                     break;
 
                 default:

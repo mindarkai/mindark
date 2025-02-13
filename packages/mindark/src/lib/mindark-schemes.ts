@@ -26,12 +26,16 @@ export const ArkMessageTransportTypeScheme = z.union([
   z.literal('humanChat'),
 ]);
 
-export const ArkMessageScheme = z.object({
-  id: z.string(),
+export const ArkMessageOptionalIdScheme = z.object({
+  id: z.string().optional(),
   type: z.string(),
   from: z.string().optional(),
   to: z.string(),
   payload: z.any().optional(),
+});
+
+export const ArkMessageScheme = ArkMessageOptionalIdScheme.extend({
+  id: z.string(),
 });
 
 export const ArkPathPartTypeScheme = z.union([

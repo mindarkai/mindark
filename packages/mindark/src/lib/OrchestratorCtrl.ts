@@ -60,7 +60,7 @@ export class OrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorConfig>
             return undefined;
         }
 
-        cancel?.removeListener(()=>{
+        cancel?.onCancel(()=>{
             deployment.dispose();
         })
 
@@ -95,13 +95,13 @@ export class OrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorConfig>
 
         const builds=await Promise.all(this.deployments.map(async d=>{
 
-            const tag=await d.buildImageAsync(cancel);
-            if(!tag){
+            const imageId=await d.buildImageAsync(cancel);
+            if(!imageId){
                 cancel.cancelNow();
             }
 
             return {
-                tag,
+                imageId,
                 deployment:d,
             }
         }));
@@ -111,8 +111,8 @@ export class OrchestratorCtrl extends ArkPackageCtrl<RuntimeOrchestratorConfig>
         }
 
         await Promise.all(builds.map(async b=>{
-            if(b.tag){
-                await b.deployment.runAsync(cancel);
+            if(b.imageId){
+                await b.deployment.runAsync(b.imageId,cancel);
             }
         }));
 
