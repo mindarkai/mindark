@@ -8,8 +8,12 @@ import { RuntimeDefConfig } from "./mindark-types";
 /* @todo
 
 - make tag prefix configurable
+- stop all container with matching stable runtime id on mount
 
 */
+
+const labelKey='mindark-run-hash';
+const runtimeLabelKey='mindark-runtime';
 
 export class ContainerDeployment
 {
@@ -162,6 +166,8 @@ export class ContainerDeployment
 
             let cmd=`${dockerCmd} run --interactive ${
                 labelPlaceholder
+            } --label ${runtimeLabelKey}=${
+                escapeCommandLineValue(this.runtime.stableId)
             } --network=${
                 networkName
             } --name=${
@@ -185,7 +191,6 @@ export class ContainerDeployment
             }`;
             // todo - envs, mounts
             const hash=strHashBase64Fs(imageId+':::::'+cmd);
-            const labelKey='mindark-run-hash';
             cmd=cmd.replace(labelPlaceholder,`--label ${labelKey}=${hash}`);
 
             let action:'create'|'start';

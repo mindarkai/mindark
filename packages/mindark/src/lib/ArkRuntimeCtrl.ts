@@ -115,9 +115,12 @@ export class ArkRuntimeCtrl extends ArkPackageCtrl<ArkRuntimeConfig>
         const overridePath=pkgDir?joinPaths(pkgDir,arkPackageFilename):item.path.endsWith('.json')?item.path:undefined;
 
         if(overridePath){
-            const pkgOverrides=await this.vfs.readObjectAsync(overridePath);
+            const pkgOverrides=await this.vfs.readObjectAsync<Partial<ArkPackage>>(overridePath);
             if(pkgOverrides){
                 pkg=mergeArkPackages(pkg,pkgOverrides);
+                if(pkgOverrides.id!==undefined){
+                    pkg.persistentId=true;
+                }
             }
         }
 

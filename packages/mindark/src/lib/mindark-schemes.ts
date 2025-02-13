@@ -7,6 +7,7 @@ export const EchoConfigScheme = z.object({});
 export const ArkRuntimeConfigScheme = z.object({
   urlPrefix: z.string().optional(),
   tmpDir: z.string().optional(),
+  logMessages: z.boolean().optional(),
 });
 
 export const EchoIdScheme = z.object({
@@ -128,6 +129,7 @@ export const RuntimeOrchestratorConfigScheme = z.object({
 export const ArkPackageScheme: z.ZodSchema<ArkPackage> = z.lazy(() =>
   z.object({
     id: z.string(),
+    persistentId: z.boolean().optional(),
     type: z.string(),
     name: z.string(),
     isModule: z.boolean(),

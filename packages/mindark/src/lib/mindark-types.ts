@@ -10,6 +10,8 @@ export interface ArkPackage
      */
     id:string;
 
+    persistentId?:boolean;
+
     /**
      *
      * A packages type is always determined by the packages file extension. The type defined in

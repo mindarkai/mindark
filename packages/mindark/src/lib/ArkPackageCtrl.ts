@@ -22,6 +22,8 @@ export class ArkPackageCtrl<TConfig extends Record<string,any>=Record<string,any
     public readonly id:string;
     public readonly name:string;
     public readonly type:string;
+    public readonly persistentId:boolean;
+    public readonly stableId:string;
 
     private readonly _path:PauseableSubject<string>;
     public get pathSubject():ReadonlySubject<string>{return this._path}
@@ -52,6 +54,8 @@ export class ArkPackageCtrl<TConfig extends Record<string,any>=Record<string,any
     }:ArkPackageCtrlOptions){
         this.name=pkg.name;
         this.id=pkg.id;
+        this.persistentId=pkg.persistentId??false;
+        this.stableId=this.persistentId?this.id:this.name;
         this.type=pkg.type;
         this.pkg=pkg;
         this.configScheme=configScheme??this._configScheme;
